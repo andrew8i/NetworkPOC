@@ -28,10 +28,10 @@ void sighandler(int signal)
 void *connectionsHandler(void *pFds)
 {
     struct pollfd **fds = (struct pollfd **)pFds; 
-    printf("Sock: %d\n", sock);
     struct pollfd mainFd[1];
     mainFd[0].fd = sock;
     mainFd[0].events = POLLIN;
+    const sigset_t sigset;
 
     while (gSignalStatus)
     {
@@ -41,7 +41,7 @@ void *connectionsHandler(void *pFds)
             int fd = accept(sock, NULL, NULL);
             if (fd > 0)
             {
-    //            pthread_mutex_lock(&lock);
+                pthread_mutex_lock(&lock);
                 for (int i = 0; i < CLIENT_MAX; ++i)
                 {
                     if ((*fds)[i].fd == -1)
@@ -51,7 +51,7 @@ void *connectionsHandler(void *pFds)
                         break;
                     }
                 }
-    //            pthread_mutex_unlock(&lock);
+                pthread_mutex_unlock(&lock);
             }
     
         }
@@ -64,7 +64,7 @@ int main(void)
 {
     struct sockaddr_in addr;
 
-    sock = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    sock = socket(AF_INET, SOCK_STREAM, 0);
     if (socket <= 0)
     {   
         return -1;
@@ -114,7 +114,7 @@ int main(void)
     {
         poll(fds, CLIENT_MAX, -1);
         
-  //      pthread_mutex_lock(&lock);
+        pthread_mutex_lock(&lock);
         for (int j = 0; j < CLIENT_MAX; ++j)
         {
             if (fds[j].revents != 0)
@@ -131,6 +131,7 @@ int main(void)
                     {
                         printf("Got message: %s\n", buf);
                     }
+                    fds[j].revents = 0;
                 }
                 else
                 {
@@ -141,7 +142,7 @@ int main(void)
                 }
             }
         }
-    //    pthread_mutex_unlock(&lock);
+        pthread_mutex_unlock(&lock);
     }
 
     for (int i = 0; i < CLIENT_MAX; ++i)
@@ -150,6 +151,7 @@ int main(void)
         close(fds[i].fd);
     }
 
+    pthread_kill(tid[0], SIGINT); // Stop the blocking accept()
     pthread_join(tid[0], NULL);
     close(sock);
     pthread_mutex_destroy(&lock);

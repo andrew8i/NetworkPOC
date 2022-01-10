@@ -48,24 +48,29 @@ int main (int argc, char *argv[])
     while (gSignalStatus)
     {
         memset(buff, 0, sizeof(buff));
-        printf("Enter the string : ");
-        scanf("%s", buff);
-        write(sock, buff, sizeof(buff));
+//        printf("Enter the string : ");
+//        scanf("%s", buff);
+//        write(sock, buff, sizeof(buff));
 
-//        memset(buff, 0, sizeof(buff));
-//        read(sock, buff, sizeof(buff));
-//        printf("From Server : %s", buff);
-
-        if ((strncmp(buff, "exit", 4)) == 0)
+        memset(buff, 0, sizeof(buff));
+        int rc = read(sock, buff, sizeof(buff));
+        if (rc <= 0)
         {
-            memset(buff, 0, sizeof(buff));
-            printf("Client Exit...\n");
-            strcpy(buff, "Good-bye");
-            write(sock, buff, sizeof(buff));
-
             close(sock);
             gSignalStatus = 0;
         }
+        printf("From Server : %s", buff);
+
+//        if ((strncmp(buff, "exit", 4)) == 0)
+//        {
+//            memset(buff, 0, sizeof(buff));
+//            printf("Client Exit...\n");
+//            strcpy(buff, "Good-bye");
+//            write(sock, buff, sizeof(buff));
+//
+//            close(sock);
+//            gSignalStatus = 0;
+//        }
     }
 
 
