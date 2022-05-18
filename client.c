@@ -79,7 +79,8 @@ reconnect:
         memset(buf, 0, MAX_MSG_SIZE);
 
         printf("Send to server: ");
-        fgets(buf, MAX_MSG_SIZE, stdin);
+        fgets(buf, MAX_MSG_SIZE, stdin); // Small bug that this will block the following poll() call
+                                         // Threads would fix this
         if ((strlen(buf) > 0) && (buf[strlen(buf) - 1] == '\n'))
         {
             buf[strlen(buf) - 1] = '\0';
