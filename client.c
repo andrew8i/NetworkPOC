@@ -44,6 +44,12 @@ int main(int argc, char *argv[])
 reconnect:
     if (connect(sockfd, (const struct sockaddr*)&servaddr, sizeof(servaddr)) != 0)
     {
+        if (!running)
+        {
+            close(sockfd);
+            return -1;
+        }
+
         static int count = 1;
         fprintf(stderr, "Initial connection with the server failed... (attempts: %d)\n", count);
         sleep(1);
