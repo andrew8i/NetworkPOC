@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
                             strcpy(buf, "Thanks! Closing my end...");
                             sock->write(buf, MAX_MSG_SIZE);
                             sock->waitForBytesWritten(-1);
+                            sock->close();
                             delete sock;
                         }
                         else

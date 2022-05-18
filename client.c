@@ -11,6 +11,7 @@ static volatile sig_atomic_t running = 1;
 
 static void handler(int signum)
 {
+    printf("Shutting down...\n");
     running = 0;
 }
 
@@ -26,7 +27,7 @@ int main(int argc, char *argv[])
     struct pollfd fds[1];
     struct sockaddr_in servaddr;
     
-    const struct sigaction act  = {.sa_handler = handler};
+    const struct sigaction act  = {.sa_handler = (void*)&handler};
     sigaction(SIGINT, &act, NULL);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -78,18 +79,18 @@ reconnect:
             buf[strlen(buf) - 1] = '\0';
         }
 
-        write(fds[0].fd, (void *)buf, MAX_MSG_SIZE);
+        write(fds[0].fd, buf, MAX_MSG_SIZE);
 
         poll(fds, 1, -1);
         if (fds[0].revents != 0)
         {
-            if (fds[0].revents & POLLIN)
+            if (fds[0].revents == POLLIN)
             {
                 memset(buf, 0, MAX_MSG_SIZE);
                 read(fds[0].fd, (void *)buf, MAX_MSG_SIZE);
                 printf("Received: %s\n\n", buf);
             }
-            else if (fds[0].revents & (POLLHUP | POLLERR))
+            else if (fds[0].revents == (POLLIN | POLLHUP | POLLERR))
             {
                 fprintf(stdout, "Other end closed connection\n");
                 running = 0;
