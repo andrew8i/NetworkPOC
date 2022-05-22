@@ -93,8 +93,12 @@ reconnect:
         {
             if (fds[0].revents == POLLIN)
             {
-                memset(buf, 0, MAX_MSG_SIZE);
-                read(fds[0].fd, (void *)buf, MAX_MSG_SIZE);
+                int count = 0;
+                while (count != MAX_MSG_SIZE)
+                {
+                    count = read(fds[0].fd, (void *)(buf + count), MAX_MSG_SIZE - count);
+                }
+
                 printf("Received: %s\n\n", buf);
             }
             else if (fds[0].revents == (POLLIN | POLLHUP | POLLERR))
